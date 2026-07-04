@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EPUB → Audiobook — Sách Nói EPUB</title>
+    <!-- Dùng bản JSZip đã vendor sẵn cục bộ (giống calibre-manager.html), KHÔNG
+         tải từ CDN. Bản .exe đóng gói chạy offline / không đảm bảo có mạng, nên
+         script CDN chặn <head> có thể không bao giờ tải xong -> window.JSZip
+         không bao giờ được gán -> nút "Tải tất cả (ZIP)" bấm mãi không ra file,
+         đúng như báo lỗi. -->
+    <script src="/calibre/vendor-jszip.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/mainAudiobook.tsx"></script>
+  </body>
+</html>

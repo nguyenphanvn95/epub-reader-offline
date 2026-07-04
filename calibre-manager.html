@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calibre Manager — Thư viện sách</title>
+<link rel="stylesheet" href="/calibre/style.css">
+</head>
+<body>
+
+
+<!-- HEADER -->
+<header>
+  <a class="logo" href="#">📚 Calibre <span>Web Mini</span></a>
+  <div class="search-wrap" id="searchWrap" style="display:none">
+    <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input type="text" id="searchInput" placeholder="Tìm tiêu đề, tác giả, tag…">
+  </div>
+  <div class="header-right">
+    <span id="totalCount" style="display:none"></span>
+    <div id="folderIndicator" style="display:none" class="folder-indicator" onclick="pickFolder()" title="Đổi thư mục Calibre">
+      <span>📁</span>
+      <span class="folder-name" id="folderName">Chọn thư mục</span>
+    </div>
+    <div class="folder-indicator" onclick="showOpdsAddress()" title="Địa chỉ OPDS để mở thư viện từ điện thoại/máy đọc sách khác trong cùng mạng LAN/WiFi">
+      <span>🔗</span>
+      <span class="folder-name">OPDS</span>
+    </div>
+    <div class="view-btns" id="viewBtns" style="display:none">
+      <button class="view-btn active" id="btnGrid" title="Dạng lưới" onclick="setView('grid')">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+          <rect x="0" y="0" width="6" height="6" rx="1"/><rect x="10" y="0" width="6" height="6" rx="1"/>
+          <rect x="0" y="10" width="6" height="6" rx="1"/><rect x="10" y="10" width="6" height="6" rx="1"/>
+        </svg>
+      </button>
+      <button class="view-btn" id="btnList" title="Dạng danh sách" onclick="setView('list')">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+          <rect x="0" y="1" width="16" height="2" rx="1"/><rect x="0" y="7" width="16" height="2" rx="1"/>
+          <rect x="0" y="13" width="16" height="2" rx="1"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- UPLOAD ZONE -->
+<div class="upload-zone" id="uploadZone">
+  <div class="upload-card" id="dropZone">
+    <div class="upload-icon">📚</div>
+    <h2>Mở thư viện Calibre</h2>
+    <p>Chọn thư mục gốc thư viện Calibre của bạn (thư mục chứa file <strong>metadata.db</strong>).<br>
+    Ứng dụng sẽ tự tìm metadata.db và toàn bộ sách bên trong — chỉ cần chọn một lần.</p>
+    <button class="upload-btn" id="pickLibraryBtn" onclick="pickFolder()">📂 Chọn thư mục thư viện</button>
+    <p style="font-size:12px;color:var(--muted);margin-top:10px">
+      Hoặc <label for="fileInput" style="text-decoration:underline;cursor:pointer">chỉ chọn file metadata.db</label>
+      (sẽ không mở được EPUB/PDF/audio trực tiếp)
+    </p>
+    <input type="file" id="fileInput" accept=".db,.sqlite,.sqlite3" style="display:none">
+  </div>
+  <p style="font-size:12px;color:var(--muted)">🔒 Dữ liệu xử lý hoàn toàn trên trình duyệt — không upload lên server</p>
+</div>
+
+<!-- MAIN APP -->
+<div class="app" id="appZone" style="display:none">
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Bộ lọc</div>
+      <button class="sidebar-item active" data-filter="all" onclick="filterBy('all',this)">
+        📚 Tất cả sách <span class="badge" id="badgeAll">0</span>
+      </button>
+      <button class="sidebar-item" data-filter="has_cover" onclick="filterBy('has_cover',this)">
+        🖼 Có bìa sách <span class="badge" id="badgeCover">0</span>
+      </button>
+      <button class="sidebar-item" data-filter="rated" onclick="filterBy('rated',this)">
+        ⭐ Có đánh giá <span class="badge" id="badgeRated">0</span>
+      </button>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Định dạng</div>
+      <div id="formatList"></div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Ngôn ngữ</div>
+      <div id="langList"></div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Thể loại</div>
+      <div class="tag-list" id="tagList"></div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Nhà xuất bản</div>
+      <div class="tag-list" id="publisherList"></div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main>
+    <!-- Folder Banner -->
+    <div class="folder-banner" id="folderBanner">
+      <div class="folder-banner-text">
+        <strong>📁 Chọn thư mục gốc Calibre để mở file sách</strong>
+        <p>Sau khi chọn, bạn có thể nhấn để mở EPUB, PDF, MP3… trực tiếp từ thư viện.</p>
+      </div>
+      <button class="btn-folder" onclick="pickFolder()">
+        <span>📂</span> Chọn thư mục Calibre
+      </button>
+    </div>
+
+    <div class="toolbar">
+      <span class="result-count" id="resultCount"></span>
+      <select class="filter-select" id="sortSelect" onchange="applySort()">
+        <option value="title_asc">Tên A→Z</option>
+        <option value="title_desc">Tên Z→A</option>
+        <option value="author_asc">Tác giả A→Z</option>
+        <option value="date_desc">Mới nhất trước</option>
+        <option value="date_asc">Cũ nhất trước</option>
+        <option value="rating_desc">Đánh giá cao nhất</option>
+      </select>
+    </div>
+
+    <div id="loadingMain" class="loading">
+      <div class="spinner"></div>
+      <span>Đang tải dữ liệu…</span>
+    </div>
+
+    <div class="book-grid" id="bookGrid"></div>
+    <div class="pagination" id="pagination"></div>
+  </main>
+</div>
+
+<!-- BOOK DETAIL MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    <div class="modal-top">
+      <div class="modal-cover" id="modalCover"></div>
+      <div class="modal-meta">
+        <div class="modal-title" id="modalTitle"></div>
+        <div class="modal-author" id="modalAuthor"></div>
+        <div class="meta-row" id="modalFormats"></div>
+        <div class="meta-row" id="modalTags"></div>
+        <div class="file-actions" id="fileActions"></div>
+        <div class="modal-stats" id="modalStats"></div>
+      </div>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- READER OVERLAY (EPUB / PDF) -->
+<div class="reader-overlay" id="readerOverlay">
+  <div class="reader-topbar">
+    <button class="reader-back" onclick="closeReader()">‹ Quay lại</button>
+    <div class="reader-title" id="readerTitle"></div>
+    <div class="reader-tools" id="readerTools"></div>
+    <button class="reader-download" id="readerDownloadBtn" title="Tải xuống">⬇ Tải xuống</button>
+    <button class="reader-close" onclick="closeReader()">✕</button>
+  </div>
+  <div class="reader-body" id="readerBody"></div>
+</div>
+
+<!-- Hidden folder input -->
+<input type="file" id="folderInputHidden" webkitdirectory multiple accept="">
+
+<!-- Embedded / vendor libraries (offline, no CDN needed) -->
+<script src="/calibre/vendor-sql-wasm.js"></script>
+<script src="/calibre/vendor-jszip.js"></script>
+<script src="/calibre/vendor-pdf.js"></script>
+<script src="/calibre/embedded-assets.js"></script>
+<script src="/calibre/vendor-epub.js"></script>
+<!-- App logic (tách riêng khỏi HTML) -->
+<script src="/calibre/app.js"></script>
+<script>
+// Địa chỉ OPDS để mở thư viện Calibre từ 1 thiết bị KHÁC (điện thoại, máy đọc
+// sách...) trong cùng mạng LAN/WiFi, dùng app đọc sách hỗ trợ OPDS (KOReader,
+// Moon+ Reader, FBReader, Calibre Companion...). Máy chủ phải chạy với
+// --host 0.0.0.0 (mặc định khi mở bằng Mo_Sach_Noi.bat) để LAN truy cập được.
+async function showOpdsAddress() {
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  let url = window.location.origin + '/opds/';
+  let warn = '';
+
+  if (isLocalhost) {
+    // Đang mở bằng "localhost" (thường là do bấm mở app trên chính máy chủ)
+    // => hỏi server địa chỉ IP LAN thật để hiển thị đúng địa chỉ dùng được
+    // từ điện thoại/thiết bị khác, không cần người dùng tự chạy "ipconfig".
+    try {
+      const res = await fetch('/api/server-info');
+      const info = await res.json();
+      if (info && info.lan_ip && info.lan_ip !== '127.0.0.1') {
+        url = `http://${info.lan_ip}:${info.port}/opds/`;
+      } else {
+        warn = '\n\n⚠ Không tự xác định được IP LAN của máy này (có thể do máy không có mạng). '
+          + 'Hãy thay "localhost" bằng địa chỉ IP LAN của máy này (xem cửa sổ hiện lên lúc khởi động server, hoặc chạy "ipconfig").';
+      }
+    } catch (e) {
+      warn = '\n\n⚠ Không lấy được IP LAN từ server. Hãy thay "localhost" bằng địa chỉ IP LAN của máy này '
+        + '(xem cửa sổ hiện lên lúc khởi động server, hoặc chạy "ipconfig").';
+    }
+  }
+
+  const msg = 'Dán địa chỉ này vào app đọc sách hỗ trợ OPDS trên điện thoại/thiết bị khác\n'
+    + '(cùng mạng WiFi/LAN với máy này):\n\n' + url + warn;
+  window.prompt(msg, url);
+}
+</script>
+</body>
+</html>

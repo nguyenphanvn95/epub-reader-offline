@@ -1,0 +1,31 @@
+{
+  "name": "epub-piper-tts-reader",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Trình đọc sách EPUB thành tiếng dùng Piper TTS (CPU-only, offline)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@breezystack/lamejs": "^1.2.7",
+    "@tailwindcss/vite": "^4.1.14",
+    "@vitejs/plugin-react": "^5.0.4",
+    "lucide-react": "^0.546.0",
+    "motion": "^12.23.24",
+    "react": "^19.0.1",
+    "react-dom": "^19.0.1",
+    "vite": "^6.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "autoprefixer": "^10.4.21",
+    "jsdom": "^29.1.1",
+    "jszip": "^3.10.1",
+    "tailwindcss": "^4.1.14",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.3"
+  }
+}

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+voices/
+__pycache__/
+*.pyc
+build/
+coverage/
+.DS_Store
+*.log
+.env*

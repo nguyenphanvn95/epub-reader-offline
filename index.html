@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sách Nói EPUB — Piper TTS (CPU Offline)</title>
+    <!-- Dùng bản JSZip đã vendor sẵn cục bộ (giống calibre-manager.html), KHÔNG
+         tải từ CDN — bản .exe chạy offline, không đảm bảo có mạng, nên script
+         CDN chặn <head> có thể treo/không bao giờ chạy được, làm cả app đứng
+         hình khi nạp trang. -->
+    <script src="/calibre/vendor-jszip.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
