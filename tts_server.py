@@ -696,11 +696,18 @@ def calibre_metadata_db():
     return resp
 
 
-@app.get("/api/calibre/file")
+@app.route("/api/calibre/file", methods=["GET", "POST"])
 def calibre_file():
     """Phục vụ 1 file bất kỳ (bìa sách, epub/pdf/audio) bên trong thư viện
     Calibre, theo đường dẫn tương đối 'rel' (giống bookPath/filename.ext mà
-    Calibre dùng). Có kiểm tra chống path traversal ra ngoài thư mục thư viện."""
+    Calibre dùng). Có kiểm tra chống path traversal ra ngoài thư mục thư viện.
+
+    Hỗ trợ cả GET và POST: trang calibre-manager dùng GET cho bìa sách và
+    tải file thật (nút Tải xuống, mở file MP3...), nhưng dùng POST khi ĐỌC
+    file EPUB/PDF ngay trong app — vì một số phần mềm quản lý tải xuống có
+    tích hợp trình duyệt (IDM và tương tự) tự động chặn ngang các request GET
+    trỏ tới URL trông giống file tải về, khiến app nhận về 0 byte. Các phần
+    mềm đó không theo dõi request POST nên tránh được vấn đề này."""
     rel = request.args.get("rel", "")
     if not rel:
         return jsonify({"error": "Thiếu tham số rel"}), 400

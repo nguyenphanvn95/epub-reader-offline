@@ -406,7 +406,22 @@ async function getFileObject(bookPath, fileName, format) {
 
   if (folderMode === 'http') {
     try {
-      const res = await fetch('/api/calibre/file?rel=' + encodeURIComponent(relPath));
+      // QUAN TRỌNG: dùng POST (thay vì GET) + header X-Requested-With khi
+      // đọc file để HIỂN THỊ TRONG APP (EPUB/PDF) — không phải để tải file
+      // thật ra máy. Một số phần mềm quản lý tải xuống có tích hợp trình
+      // duyệt (IDM "Advanced Browser Integration" và tương tự) tự động chặn
+      // ngang MỌI request GET trỏ tới URL trông giống file (PDF/ZIP/MP3...)
+      // đủ lớn, kể cả khi đó chỉ là fetch() nội bộ để đọc bytes vào app chứ
+      // không phải người dùng bấm tải. Khi bị chặn ngang, request gốc của
+      // app nhận về 0 byte (=> lỗi "The PDF file is empty"), còn phần mềm đó
+      // tự tải riêng một bản và hiện hộp thoại tải xuống của nó. Các tiện
+      // ích này chỉ theo dõi/chặn request GET giống link tải — đổi sang POST
+      // sẽ không bị nhận diện là "tải file" nữa nên không bị chặn ngang.
+      const res = await fetch('/api/calibre/file?rel=' + encodeURIComponent(relPath), {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        cache: 'no-store',
+      });
       if (!res.ok) return null;
       return await res.blob(); // Blob có .arrayBuffer(), dùng được như File
     } catch (e) { return null; }
